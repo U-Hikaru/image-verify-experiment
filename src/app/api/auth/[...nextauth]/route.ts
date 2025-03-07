@@ -1,0 +1,69 @@
+
+import NextAuth from "next-auth/next";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { PrismaAdapter } from "@auth/prisma-adapter"
+import prisma from "@/lib/prisma"
+import bcrypt from "bcryptjs";
+
+export const authOptions = {
+  adapter: PrismaAdapter(prisma),
+  providers: [
+        CredentialsProvider({
+        
+      name: "Credentials",
+      credentials: {
+        phone: {label: "Phone Number", type: "text"},
+        password: {label: "Password", type: "password"},
+      },
+        async authorize(credentials, req) {
+            if (!credentials?.phone || !credentials?.password) {
+                throw new Error('Phone number and password are required.')
+            }
+            
+            const user = await prisma.user.findUnique({ where: { phone: credentials.phone } });
+            if (!user) {
+                throw new Error('Invalid phone number or password.')
+            }
+            
+            const passwordMatch = await bcrypt.compare(credentials?.password || "", user.password);
+            
+            if (!passwordMatch) {
+                throw new Error('Invalid email or password.')
+            }
+            return user
+      },
+    }),
+  ], 
+    callbacks: {
+        async jwt({ token, user }) {
+        if (user) {
+            token.user = {
+                id : user.id,
+                phone: user.phone,
+                key: user.privateKey
+            };
+        }
+        return token;
+        },
+        async session({ session, token }) {
+            session.user = {
+                id : token.user.id,
+                phone: token.user.phone,
+                key: token.user.key
+            }
+            return session;
+        },
+        
+    },
+    session: {
+    strategy: "jwt",
+  },
+  pages: {
+    signIn: "/login",
+  },
+    secret: process.env.NEXTAUTH_SECRET,
+  debug: process.env.NODE_ENV === "development"
+}
+
+const handler = NextAuth(authOptions)
+export { handler as GET, handler as POST };

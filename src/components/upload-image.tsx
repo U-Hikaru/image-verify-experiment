@@ -5,11 +5,14 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import Image from "next/image";
 
-export function UploadImage({
-  className,
-  ...props
-}: React.ComponentProps<"div">) {
+interface ChildProps {
+  session: any; // You can type this more strictly if you have a defined type
+}
+
+export function UploadImage({ session }: ChildProps) {
   const [image, setImage] = useState<string | null>(null);
+
+  console.log(session);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
