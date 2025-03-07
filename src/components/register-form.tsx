@@ -1,8 +1,26 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 import Link from "next/link";
 
@@ -10,30 +28,78 @@ export function RegisterForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const [form, setForm] = useState({ phone: "", idNumber: "", password: "" });
+  const [message, setMessage] = useState("");
+  const [isSuccess, setIsSuccess] = useState(false);
+  const router = useRouter();
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMessage("");
+
+    const res = await fetch("/api/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form),
+    });
+
+    const data = await res.json();
+    if (!res.ok) setMessage(data.error);
+    else {
+      setIsSuccess(true);
+      setTimeout(() => {
+        router.push("/login"); // Redirect after 3 seconds
+      }, 3000);
+    }
+  };
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader className="text-center">
           <CardTitle className="text-xl">Create New Account</CardTitle>
+          <CardDescription>
+            {message && (
+              <p className="mt-3 text-center text-red-500">{message}</p>
+            )}
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <form>
+          <form onSubmit={handleSubmit}>
             <div className="flex flex-col gap-4">
               <div className="grid gap-3">
-                <Label htmlFor="phone-number">Phone Number</Label>
-                <Input id="phone-number" type="text" required />
+                <Label htmlFor="phone">Phone Number</Label>
+                <Input
+                  id="phone"
+                  name="phone"
+                  type="text"
+                  onChange={handleChange}
+                  required
+                />
               </div>
               <div className="grid gap-3">
-                <Label htmlFor="id">ID Number</Label>
-                <Input id="id" type="text" required />
+                <Label htmlFor="idNumber">ID Number</Label>
+                <Input
+                  id="idNumber"
+                  name="idNumber"
+                  type="text"
+                  onChange={handleChange}
+                  required
+                />
               </div>
               <div className="grid gap-3">
                 <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" required />
-              </div>
-              <div className="grid gap-3">
-                <Label htmlFor="confirm-password">Confirm Password</Label>
-                <Input id="confirm-password" type="password" required />
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  onChange={handleChange}
+                  required
+                />
               </div>
             </div>
             <div className="mt-6">
@@ -50,6 +116,21 @@ export function RegisterForm({
           </form>
         </CardContent>
       </Card>
+
+      <AlertDialog open={isSuccess}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Registration Successful</AlertDialogTitle>
+            <AlertDialogDescription>
+              Now you can use your account to login to the system. Redirecting
+              to login page in 3 seconds...
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogAction onClick={() => router.push("/login")}>
+            Go to Login
+          </AlertDialogAction>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
