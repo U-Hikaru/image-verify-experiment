@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import forge from "node-forge";
 import prisma from "@/lib/prisma";
 import { generateKeypair } from "@/lib/node-rsa-utils";
 
