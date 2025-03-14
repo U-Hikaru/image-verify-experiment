@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession, AuthOptions } from "next-auth";
 
-import { authOptions } from "../auth/[...nextauth]/route"
+import { authOptions } from "../auth/[...nextauth]/options"
 
 import prisma from "@/lib/prisma";
 import { decryptWithPublicKey } from "@/lib/node-rsa-utils";
