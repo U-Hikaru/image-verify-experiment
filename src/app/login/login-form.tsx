@@ -40,7 +40,6 @@ export function LoginForm({
         password: form.password,
         redirect: false,
       });
-      console.log({ response });
       if (!response?.error) {
         router.push("/");
         router.refresh();
@@ -49,8 +48,6 @@ export function LoginForm({
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
-      // Process response here
-      console.log("Login Successful", response);
     } catch (error: any) {
       console.error("Login Failed:", error);
       setMessage("Phone number or password incorrect");

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import forge from "node-forge";
 import prisma from "@/lib/prisma";
+import { generateKeypair } from "@/lib/node-rsa-utils";
 
 export async function POST(req: Request) {
   try {
@@ -20,9 +21,11 @@ export async function POST(req: Request) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Generate RSA Key Pair
-    const keyPair = forge.pki.rsa.generateKeyPair({ bits: 2048 });
-    const privateKey = forge.pki.privateKeyToPem(keyPair.privateKey);
-    const publicKey = forge.pki.publicKeyToPem(keyPair.publicKey);
+    // const keyPair = forge.pki.rsa.generateKeyPair({ bits: 2048 });
+    // const privateKey = forge.pki.privateKeyToPem(keyPair.privateKey);
+    // const publicKey = forge.pki.publicKeyToPem(keyPair.publicKey);
+
+    const { publicKey, privateKey } = generateKeypair();
 
     // Store user with keys
     const newUser = await prisma.user.create({

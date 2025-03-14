@@ -1,12 +1,13 @@
-
 import NextAuth from "next-auth/next";
+import { AuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials";
-import { PrismaAdapter } from "@auth/prisma-adapter"
-import prisma from "@/lib/prisma"
 import bcrypt from "bcryptjs";
+import prisma from "@/lib/prisma"
+import { encryptSessionData } from "@/lib/session-utils";
 
-export const authOptions = {
-  adapter: PrismaAdapter(prisma),
+
+export const authOptions: AuthOptions = {
+  // adapter: PrismaAdapter(prisma),
   providers: [
         CredentialsProvider({
         
@@ -37,20 +38,23 @@ export const authOptions = {
     callbacks: {
         async jwt({ token, user }) {
         if (user) {
-            token.user = {
-                id : user.id,
-                phone: user.phone,
-                key: user.privateKey
-            };
+          token.user = {
+            id: user.id,
+            phone: user.phone,
+            privateKey: await encryptSessionData(user.privateKey)
+          };
+          
         }
         return token;
         },
-        async session({ session, token }) {
+      async session({ session, token }: { session: any, token: any }) {
+        if (token && token.user) {
             session.user = {
                 id : token.user.id,
                 phone: token.user.phone,
-                key: token.user.key
+                privateKey: token.user.privateKey
             }
+        }
             return session;
         },
         
@@ -61,7 +65,7 @@ export const authOptions = {
   pages: {
     signIn: "/login",
   },
-    secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === "development"
 }
 

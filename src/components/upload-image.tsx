@@ -1,46 +1,83 @@
 "use client";
+import { useState } from "react";
+import Image from "next/image";
+import crypto from "crypto";
+import { toast } from "sonner";
+
+import { encryptWithPrivateKey } from "@/lib/node-rsa-utils";
+import { decryptSessionData } from "@/lib/session-utils";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
-import Image from "next/image";
 
 interface ChildProps {
   session: any; // You can type this more strictly if you have a defined type
 }
 
 export function UploadImage({ session }: ChildProps) {
-  const [image, setImage] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
-  console.log(session);
-
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImage(reader.result as string);
+        setImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
   };
+
+  const handleFileUpload = async () => {
+    if (!imagePreview) {
+      toast.warning("Please upload the image for verification!");
+      return;
+    }
+
+    try {
+      const hash = crypto
+        .createHash("sha256")
+        .update(imagePreview)
+        .digest("hex");
+
+      const key = await decryptSessionData(session.user.privateKey);
+
+      const encryptedData = encryptWithPrivateKey(hash, key);
+
+      const res = await fetch("/api/image-verification", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // Ensures session cookies are sent
+        body: JSON.stringify({ hash: hash, signature: encryptedData }),
+      });
+
+      if (!res) throw new Error("Something went wrong!");
+
+      if (res.status === 200) toast.success("Image verification successful");
+      else toast.error("Image verification fail!");
+    } catch (error) {
+      toast.error("Something went wrong");
+    }
+  };
+
   return (
-    //   <div className="flex flex-col md:flex-row gap-8 p-4 space-4">
     <div className="grid md:grid-cols-2 grid-cols-1 gap-8">
       <div className="flex flex-col gap-4">
         <Input
           id="picture"
           type="file"
           accept="image/*"
-          onChange={handleImageUpload}
+          onChange={handleFileChange}
         />
-        <Button>Upload</Button>
+        <Button onClick={handleFileUpload}>Upload</Button>
       </div>
 
-      {image ? (
+      {imagePreview ? (
         <div className="relative w-full max-w-sm">
           <Image
-            src={image}
+            src={imagePreview}
             alt="Uploaded preview"
             layout="responsive"
             width={500}
