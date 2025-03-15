@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "preinstall": "npx prisma generate",
     "dev": "next dev --turbopack",
     "build": "next build && prisma generate",
     "start": "next start",
@@ -42,6 +43,7 @@
     "eslint-config-next": "15.2.1",
     "prisma": "^6.4.1",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "prisma": "^6.4.1"
   }
 }
