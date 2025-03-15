@@ -21,6 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Spinner } from "@/components/spinner";
 
 import Link from "next/link";
 
@@ -31,6 +32,7 @@ export function RegisterForm({
   const [form, setForm] = useState({ phone: "", idNumber: "", password: "" });
   const [message, setMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,20 +42,33 @@ export function RegisterForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage("");
+    setIsLoading(true);
 
-    const res = await fetch("/api/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
+    try {
+      const res = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
 
-    const data = await res.json();
-    if (!res.ok) setMessage(data.error);
-    else {
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Registration failed.");
+      }
+
       setIsSuccess(true);
+      setMessage("Registration successful! Redirecting...");
+
       setTimeout(() => {
         router.push("/login"); // Redirect after 3 seconds
       }, 3000);
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "An unexpected error occurred."
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -104,7 +119,14 @@ export function RegisterForm({
             </div>
             <div className="mt-6">
               <Button type="submit" className="w-full">
-                Register
+                {isLoading ? (
+                  <>
+                    <span>Registering</span>
+                    <Spinner />
+                  </>
+                ) : (
+                  <span>Register</span>
+                )}
               </Button>
             </div>
             <div className="mt-4 text-center text-sm">

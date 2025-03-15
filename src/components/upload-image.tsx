@@ -9,6 +9,7 @@ import { decryptSessionData } from "@/lib/session-utils";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "./spinner";
 
 interface ChildProps {
   session: any; // You can type this more strictly if you have a defined type
@@ -16,6 +17,7 @@ interface ChildProps {
 
 export function UploadImage({ session }: ChildProps) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -35,6 +37,7 @@ export function UploadImage({ session }: ChildProps) {
     }
 
     try {
+      setIsLoading(true);
       const hash = crypto
         .createHash("sha256")
         .update(imagePreview)
@@ -59,6 +62,8 @@ export function UploadImage({ session }: ChildProps) {
       else toast.error("Image verification fail!");
     } catch (error) {
       toast.error("Something went wrong");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -71,7 +76,16 @@ export function UploadImage({ session }: ChildProps) {
           accept="image/*"
           onChange={handleFileChange}
         />
-        <Button onClick={handleFileUpload}>Upload</Button>
+        <Button onClick={handleFileUpload}>
+          {isLoading ? (
+            <>
+              <span>Uploading</span>
+              <Spinner />
+            </>
+          ) : (
+            <span>Upload</span>
+          )}
+        </Button>
       </div>
 
       {imagePreview ? (

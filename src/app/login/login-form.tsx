@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/spinner";
+
 import Link from "next/link";
 
 export function LoginForm({
@@ -23,8 +25,7 @@ export function LoginForm({
   const router = useRouter();
   const [form, setForm] = useState({ phone: "", password: "" });
   const [message, setMessage] = useState("");
-
-  form.password;
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -35,6 +36,7 @@ export function LoginForm({
     setMessage("");
 
     try {
+      setIsLoading(true);
       const response: any = await signIn("credentials", {
         phone: form.phone,
         password: form.password,
@@ -51,6 +53,8 @@ export function LoginForm({
     } catch (error: any) {
       console.error("Login Failed:", error);
       setMessage("Phone number or password incorrect");
+    } finally {
+      setIsLoading(false);
     }
   };
   return (
@@ -90,7 +94,14 @@ export function LoginForm({
             </div>
             <div className="flex flex-col gap-3 mt-6">
               <Button type="submit" className="w-full">
-                Login
+                {isLoading ? (
+                  <>
+                    <span>Logging in</span>
+                    <Spinner />
+                  </>
+                ) : (
+                  <span>Login</span>
+                )}
               </Button>
             </div>
             <div className="mt-4 text-center text-sm">
