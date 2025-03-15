@@ -16,6 +16,7 @@ This project is set up with **Next.js**, **Prisma**, and an **SQLite** database.
 3. **Run migrations to set up the database**:
    ```bash
    npx prisma migrate dev --name init
+   npx prisma generate
    ```
 4. **Start the Next.js application**:
    ```bash
