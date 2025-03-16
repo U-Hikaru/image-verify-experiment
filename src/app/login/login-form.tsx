@@ -46,15 +46,14 @@ export function LoginForm({
         router.push("/");
         router.refresh();
       }
-
+      setIsLoading(false);
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
     } catch (error: any) {
+      setIsLoading(false);
       console.error("Login Failed:", error);
       setMessage("Phone number or password incorrect");
-    } finally {
-      setIsLoading(false);
     }
   };
   return (
