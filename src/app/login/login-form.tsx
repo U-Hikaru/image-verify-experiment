@@ -46,7 +46,6 @@ export function LoginForm({
         router.push("/");
         router.refresh();
       }
-      setIsLoading(false);
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
